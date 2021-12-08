@@ -1,0 +1,115 @@
+# in progress
+# discover key/pairs by running `dconf watch /` and changing different settings
+- hosts: localhost
+  tasks:
+    # install packages
+    - name: rpm fusion
+      become: true
+      package:
+        name: https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+
+    - name: install packages
+      become: true
+      package:
+        name: 
+          - dnf-automatic
+          - foliate
+          - gnome-tweaks
+          - google-roboto-slab-fonts
+          - keepassxc
+          - mozilla-fira-mono-fonts
+          - mozilla-fira-sans-fonts
+          - mpv
+          - syncthing
+          - transmission
+        state: present
+
+    # change gnome default settings
+    - name: am/pm clock
+      dconf:
+        key: "/org/gnome/desktop/interface/clock-format"
+        value: "'12h'"
+
+    - name: enable night light
+      dconf:
+        key: "/org/gnome/settings-daemon/plugins/color/night-light-enabled"
+        value: "true"
+
+    - name: set interface font
+      dconf:
+        key: "/org/gnome/desktop/interface/font-name"
+        value: "'Fira Sans Semi-Light 10'"
+
+    - name: set document font
+      dconf:
+        key: "/org/gnome/desktop/interface/document-font-name"
+        value: "Roboto Slab 11"
+
+    - name: set monospace font
+      dconf:
+        key: "/org/gnome/desktop/interface/monospace-font-name"
+        value: "Fira Mono 11"
+
+    - name: set legacy font
+      dconf:
+        key: "org/gnome/desktop/wm/preferences/titlebar-font"
+        value: "Fira Sans Semi-Bold 10"
+
+    - name: antialiasing
+      dconf:
+        key: "org/gnome/desktop/interface/font-antialiasing"
+        value: "rgba"
+
+    - name: terminal bell
+      dconf:
+        key: "/org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9/audible-bell"
+        value: "false"
+
+    - name: natural scrolling
+      dconf:
+        key: "/org/gnome/desktop/peripherals/touchpad/natural-scroll"
+        value: "false"
+
+    - name: hot corners
+      dconf:
+        key: "/org/gnome/desktop/interface/enable-hot-corners"
+        value: "false"
+
+    - name: download updates
+      dconf:
+        key: "/org/gnome/software/download-updates"
+        value: "false"
+
+    - name: download updates notify
+      dconf:
+        key: "/org/gnome/software/download-updates-notify"
+        value: "false"
+
+    # - name: enable flathub repo
+    # become: yes
+    # command: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: install vscode
+      command: flatpak install --assumeyes flathub com.visualstudio.code
+
+    - name: dnf config
+      become: true
+      blockinfile:
+        path: /etc/dnf/dnf.conf
+        block: |
+          fastestmirror=1
+          max_parellel_downloads=6
+
+    - name: dnf automatic security
+      become: true
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^upgrade_type ="
+        line: upgrade_type = security
+
+    - name: dnf automatic timer
+      become: true
+      systemd:
+        name: dnf-automatic-install.timer
+        state: started
+        enabled: yes
