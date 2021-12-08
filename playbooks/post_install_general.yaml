@@ -1,18 +1,67 @@
-# in progress
 # discover key/pairs by running `dconf watch /` and changing different settings
 - hosts: localhost
   tasks:
-    # install packages
+    # change default dnf config and enable automatic security updates
+    - name: dnf config
+      become: true
+      blockinfile:
+        path: /etc/dnf/dnf.conf
+        block: |
+          fastestmirror=1
+          max_parellel_downloads=6
+
+    - name: dnf automatic security
+      become: true
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^upgrade_type ="
+        line: upgrade_type = security
+
+    - name: dnf automatic timer
+      become: true
+      systemd:
+        name: dnf-automatic-install.timer
+        state: started
+        enabled: yes
+
+    # generate ed25519 ssh keypair
+    - name: create .ssh dir
+      file:
+        path: "~/.ssh"
+        state: directory
+    - name: generate ssh key
+      openssh_keypair:
+        path: "~/.ssh/id_ed25519"
+        type: ed25519
+        state: present
+        force: false
+
+    # upgrade and install packages
+    - name: upgrade packages
+      become: true
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: psutil
+      become: true
+      package:
+        name: python3-psutil
+        state: present
+
     - name: rpm fusion
       become: true
       package:
-        name: https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+        name: https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ansible_distribution_major_version}}.noarch.rpm
+        disable_gpg_check: true
+        state: present
 
     - name: install packages
       become: true
       package:
         name: 
           - dnf-automatic
+          - fedora-workstation-repositories
           - foliate
           - gnome-tweaks
           - google-roboto-slab-fonts
@@ -22,9 +71,35 @@
           - mpv
           - syncthing
           - transmission
+          - vim
+        state: present
+    
+    # enable flathub repo and install flatpaks
+    - name: flathub remote
+      flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: vscode
+      flatpak:
+        name: com.visualstudio.code
         state: present
 
+    # enable and start syncthing service
+    - name: syncthing
+      systemd:
+        name: syncthing
+        state: started
+        enabled: yes
+        scope: user
+
     # change gnome default settings
+    - name: dark theme
+      dconf:
+        key: "/org/gnome/desktop/interface/gtk-theme"
+        value: "'Adwaita-dark'"
+
     - name: am/pm clock
       dconf:
         key: "/org/gnome/desktop/interface/clock-format"
@@ -43,22 +118,22 @@
     - name: set document font
       dconf:
         key: "/org/gnome/desktop/interface/document-font-name"
-        value: "Roboto Slab 11"
+        value: "'Roboto Slab 11'"
 
     - name: set monospace font
       dconf:
         key: "/org/gnome/desktop/interface/monospace-font-name"
-        value: "Fira Mono 11"
+        value: "'Fira Mono 11'"
 
     - name: set legacy font
       dconf:
-        key: "org/gnome/desktop/wm/preferences/titlebar-font"
-        value: "Fira Sans Semi-Bold 10"
+        key: "/org/gnome/desktop/wm/preferences/titlebar-font"
+        value: "'Fira Sans Semi-Bold 10'"
 
     - name: antialiasing
       dconf:
-        key: "org/gnome/desktop/interface/font-antialiasing"
-        value: "rgba"
+        key: "/org/gnome/desktop/interface/font-antialiasing"
+        value: "'rgba'"
 
     - name: terminal bell
       dconf:
@@ -85,31 +160,7 @@
         key: "/org/gnome/software/download-updates-notify"
         value: "false"
 
-    # - name: enable flathub repo
-    # become: yes
-    # command: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-    - name: install vscode
-      command: flatpak install --assumeyes flathub com.visualstudio.code
-
-    - name: dnf config
-      become: true
-      blockinfile:
-        path: /etc/dnf/dnf.conf
-        block: |
-          fastestmirror=1
-          max_parellel_downloads=6
-
-    - name: dnf automatic security
-      become: true
-      lineinfile:
-        path: /etc/dnf/automatic.conf
-        regexp: "^upgrade_type ="
-        line: upgrade_type = security
-
-    - name: dnf automatic timer
-      become: true
-      systemd:
-        name: dnf-automatic-install.timer
-        state: started
-        enabled: yes
+    - name: favorate apps
+      dconf:
+        key: "/org/gnome/shell/favorite-apps"
+        value: "['firefox.desktop', 'org.keepassxc.KeePassXC.desktop', 'org.gnome.Nautilus.desktop', 'com.visualstudio.code.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Software.desktop']"

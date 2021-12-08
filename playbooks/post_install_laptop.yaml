@@ -1,4 +1,3 @@
-# in progress
 - hosts: localhost
   tasks:
     # install packages
@@ -14,15 +13,32 @@
     # change gnome default settings
     - name: scaling factor
       dconf:
-        key: "org/gnome/desktop/interface/text-scaling-factor"
-        value: 1.25
+        key: "/org/gnome/desktop/interface/text-scaling-factor"
+        value: "1.25"
 
     - name: blank screen
       dconf:
         key: "/org/gnome/desktop/session/idle-delay"
         value: "uint32 120"
 
-    - name: mouse click emulation
+    - name: tap to click
       dconf:
-        key: "/org/gnome/desktop/peripherals/touchpad/click-method"
-        value: "fingers"
+        key: "/org/gnome/desktop/peripherals/touchpad/tap-to-click"
+        value: "true"
+
+    - name: touchpad natural scrolling
+      dconf:
+        key: "/org/gnome/desktop/peripherals/touchpad/natural-scroll"
+        value: "false"
+
+    - name: mask power-profiles-daemon
+      become: true
+      systemd:
+        name: power-profiles-daemon.service
+        masked: true
+
+    - name: start tlp
+      become: true
+      systemd:
+        name: tlp.service
+        state: started
