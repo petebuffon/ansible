@@ -24,17 +24,6 @@
         state: started
         enabled: yes
 
-    # generate ed25519 ssh keypair
-    - name: create .ssh dir
-      file:
-        path: "~/.ssh"
-        state: directory
-    - name: generate ssh key
-      openssh_keypair:
-        path: "~/.ssh/id_ed25519"
-        type: ed25519
-        state: present
-        force: false
 
     # upgrade and install packages
     - name: upgrade packages
@@ -43,11 +32,18 @@
         name: "*"
         state: latest
 
-    - name: psutil
+    - name: prereqs
       become: true
       package:
-        name: python3-psutil
+        name: 
+          - python3-psutil
+          - fedora-workstation-repositories
         state: present
+
+    - name: steam repo
+      become: true
+      command: dnf config-manager --enable rpmfusion-nonfree-steam
+      warn: false
 
     - name: rpm fusion
       become: true
@@ -61,14 +57,15 @@
       package:
         name: 
           - dnf-automatic
-          - fedora-workstation-repositories
           - foliate
           - gnome-tweaks
           - google-roboto-slab-fonts
           - keepassxc
+          - lutris
           - mozilla-fira-mono-fonts
           - mozilla-fira-sans-fonts
           - mpv
+          - steam
           - syncthing
           - transmission
           - vim
