@@ -1,6 +1,22 @@
-# discover key/pairs by running `dconf watch /` and changing different settings
+ # discover key/pairs by running `dconf watch /` and changing different settings
 - hosts: localhost
   tasks:
+    # upgrade and install packages
+    - name: upgrade packages
+      become: true
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: prereqs
+      become: true
+      package:
+        name:
+          - python3-psutil
+          - fedora-workstation-repositories
+          - dnf-automatic
+        state: present
+
     # change default dnf config and enable automatic security updates
     - name: dnf config
       become: true
@@ -24,26 +40,10 @@
         state: started
         enabled: yes
 
-
-    # upgrade and install packages
-    - name: upgrade packages
-      become: true
-      dnf:
-        name: "*"
-        state: latest
-
-    - name: prereqs
-      become: true
-      package:
-        name: 
-          - python3-psutil
-          - fedora-workstation-repositories
-        state: present
-
-    - name: steam repo
-      become: true
-      command: dnf config-manager --enable rpmfusion-nonfree-steam
-      warn: false
+    #- name: steam repo
+    #  become: true
+    #  command: dnf config-manager --enable rpmfusion-nonfree-steam
+    #  warn: false
 
     - name: rpm fusion
       become: true
@@ -55,7 +55,7 @@
     - name: install packages
       become: true
       package:
-        name: 
+        name:
           - dnf-automatic
           - foliate
           - gnome-tweaks
@@ -70,15 +70,16 @@
           - transmission
           - vim
         state: present
-    
+
     # enable flathub repo and install flatpaks
     - name: flathub remote
       flatpak_remote:
         name: flathub
         state: present
-        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
     - name: vscode
+      become: true
       flatpak:
         name: com.visualstudio.code
         state: present
@@ -92,10 +93,10 @@
         scope: user
 
     # change gnome default settings
-    - name: dark theme
+    - name: dark appearance
       dconf:
-        key: "/org/gnome/desktop/interface/gtk-theme"
-        value: "'Adwaita-dark'"
+        key: "/org/gnome/desktop/interface/color-scheme"
+        value: "'prefer-dark'"
 
     - name: am/pm clock
       dconf:
@@ -157,7 +158,7 @@
         key: "/org/gnome/software/download-updates-notify"
         value: "false"
 
-    - name: favorate apps
+    - name: favorite apps
       dconf:
         key: "/org/gnome/shell/favorite-apps"
         value: "['firefox.desktop', 'org.keepassxc.KeePassXC.desktop', 'org.gnome.Nautilus.desktop', 'com.visualstudio.code.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Software.desktop']"
