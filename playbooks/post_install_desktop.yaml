@@ -1,12 +1,16 @@
 # in progress
 - hosts: localhost
   tasks:
+    - name: steam repo
+      become: true
+      command: dnf config-manager --enable rpmfusion-nonfree-nvidia-driver
+
     # install packages
     - name: install packages
       become: true
       package:
-        name: 
-          # add packages
+        name:
+          nvidia-driver
         state: present
 
     # change gnome default settings

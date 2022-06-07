@@ -40,10 +40,9 @@
         state: started
         enabled: yes
 
-    #- name: steam repo
-    #  become: true
-    #  command: dnf config-manager --enable rpmfusion-nonfree-steam
-    #  warn: false
+    - name: steam repo
+      become: true
+      command: dnf config-manager --enable rpmfusion-nonfree-steam
 
     - name: rpm fusion
       become: true
@@ -71,12 +70,9 @@
           - vim
         state: present
 
-    # enable flathub repo and install flatpaks
-    - name: flathub remote
-      flatpak_remote:
-        name: flathub
-        state: present
-        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    - name: flathub
+      become: true
+      command: flatpak remote-modify --no-filter flathub && flatpak remote-modify --enable flathub
 
     - name: vscode
       become: true
