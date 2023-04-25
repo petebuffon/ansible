@@ -21,10 +21,15 @@
         key: "/org/gnome/desktop/session/idle-delay"
         value: "uint32 120"
 
-    - name: screen lock delay
+    - name: lock-delay
       dconf:
         key: "/org/gnome/desktop/screensaver/lock-delay"
-        value: "uint32 1800"
+        value: "uint32 180"
+
+    - name: plugged in suspend
+      dconf:
+        key: "/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-timeout"
+        value: "1800"
 
     - name: tap to click
       dconf:

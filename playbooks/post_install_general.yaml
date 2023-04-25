@@ -24,7 +24,7 @@
         path: /etc/dnf/dnf.conf
         block: |
           fastestmirror=1
-          max_parellel_downloads=6
+          max_parellel_downloads=10
 
     - name: dnf automatic security
       become: true
@@ -63,16 +63,12 @@
           - lutris
           - mozilla-fira-mono-fonts
           - mozilla-fira-sans-fonts
-          - mpv
+          - vlc
           - steam
           - syncthing
           - transmission
           - vim
         state: present
-
-    - name: flathub
-      become: true
-      command: flatpak remote-modify --no-filter flathub && flatpak remote-modify --enable flathub
 
     - name: vscode
       become: true
@@ -88,6 +84,9 @@
         enabled: yes
         scope: user
 
+ # discover key/pairs by running `dconf watch /` and changing different settings
+- hosts: localhost
+  tasks:
     # change gnome default settings
     - name: dark appearance
       dconf:
@@ -107,7 +106,7 @@
     - name: set interface font
       dconf:
         key: "/org/gnome/desktop/interface/font-name"
-        value: "'Fira Sans Semi-Light 10'"
+        value: "'Fira Sans Semi-Light 11'"
 
     - name: set document font
       dconf:
